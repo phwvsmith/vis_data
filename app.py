@@ -5,17 +5,11 @@
 
 import streamlit as st
 import datetime
-import plotly.offline as pyo
 import plotly.graph_objs as go
 import pandas as pd
-import plotly.express as px
-import re 
 from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderTimedOut
 import json
 import numpy as np
-import geopandas
-import geopy
 from geopy.extra.rate_limiter import RateLimiter
 # from datetime import datetime
 
@@ -33,7 +27,7 @@ st.header('Bed use by non-covid patients (7 day average)')
 
 
 #AandE dataframe
-df_AandE = pd.read_csv('/Users/eoinvondy/Downloads/AandEattendance_localhealthboard.csv', index_col='Date')
+df_AandE = pd.read_csv('AandEattendance_localhealthboard.csv', index_col='Date')
 
 cols = df_AandE.columns
 df_AandE.reset_index(inplace=True)
@@ -51,13 +45,13 @@ df_AandE['Health Board'] = [i.rstrip() for i in df_AandE['Health Board']]
 
 
 #beds
-df_beds_genandacute_covid = pd.read_csv('/Users/eoinvondy/Downloads/beds_healthboard_genandacute_covid.csv', index_col='Date')
-df_beds_genandacute_noncovid = pd.read_csv('/Users/eoinvondy/Downloads/beds_healthboard_genandacute_non-covid.csv', index_col='Date')
-df_vacant_beds_genandacute = pd.read_csv('/Users/eoinvondy/Downloads/vacantbeds_healthboard_genandacute_non-covid.csv', index_col='Date')
+df_beds_genandacute_covid = pd.read_csv('beds_healthboard_genandacute_covid.csv', index_col='Date')
+df_beds_genandacute_noncovid = pd.read_csv('beds_healthboard_genandacute_non-covid.csv', index_col='Date')
+df_vacant_beds_genandacute = pd.read_csv('vacantbeds_healthboard_genandacute_non-covid.csv', index_col='Date')
 
-df_ventbeds_covid = pd.read_csv('/Users/eoinvondy/Downloads/ventbeds_healthboard_covid.csv', index_col='Date')
-df_ventbeds_noncovid = pd.read_csv('/Users/eoinvondy/Downloads/ventbeds_healthboard_non-covid.csv', index_col='Date')
-df_vacant_ventbeds = pd.read_csv('/Users/eoinvondy/Downloads/vacantventbeds_healthboard.csv', index_col='Date')
+df_ventbeds_covid = pd.read_csv('ventbeds_healthboard_covid.csv', index_col='Date')
+df_ventbeds_noncovid = pd.read_csv('ventbeds_healthboard_non-covid.csv', index_col='Date')
+df_vacant_ventbeds = pd.read_csv('vacantventbeds_healthboard.csv', index_col='Date')
 
 
 def clean_combine_dfs(df):
@@ -156,7 +150,7 @@ def get_location_info(df):
 df_beds = get_location_info(df_beds)
 
 #Get population info for health boards and clean up the dataframe
-population_health_boards = pd.read_csv('/Users/eoinvondy/Downloads/popln_health_boards.csv')
+population_health_boards = pd.read_csv('popln_health_boards.csv')
 population_health_boards = population_health_boards[['Unnamed: 1','All ages .1']]
 population_health_boards = population_health_boards.drop(labels=[0, 1, 2], axis=0)
 population_health_boards = population_health_boards.rename(columns={'Unnamed: 1':'Health Board','All ages .1':'population'})
@@ -763,7 +757,7 @@ fig.update_layout(width=1800, height=800)
 st.plotly_chart(fig, displayModeBar=False, showTips='False')
 
 
-df_vis = pd.read_csv('/Users/eoinvondy/Downloads/master_geos_wales.csv')
+df_vis = pd.read_csv('master_geos_wales.csv')
 
 df_quint = df_vis[df_vis.wimd_2019 < 192]
 
@@ -808,7 +802,7 @@ st.plotly_chart(fig)
 
 
 
-df_age = pd.read_csv('/Users/eoinvondy/Downloads/age.csv')
+df_age = pd.read_csv('age.csv')
 
 df_age = df_age.sort_values('Aged 85 and over per 100k')
 traces=[go.Bar(
@@ -863,7 +857,7 @@ st.plotly_chart(fig)
 #
 #
 #
-#df_useful = pd.read_csv('/Users/eoinvondy/Downloads/useful_1.csv')
+#df_useful = pd.read_csv('
 #
 #df_useful['UA19CD'].unique()
 #
