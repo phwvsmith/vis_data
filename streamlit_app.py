@@ -212,7 +212,7 @@ df_beds = df_beds.replace(np.nan, 0)
 
 
 #upload geojson
-wales_health_boards = json.load(open('/Users/eoinvondy/Downloads/Local_Health_Boards__April_2019__Boundaries_WA_BFE.geojson'))
+wales_health_boards = json.load(open('Local_Health_Boards__April_2019__Boundaries_WA_BFE.geojson'))
 
 #see if loaded ok
 #wales_health_boards['features'][0]['properties']
