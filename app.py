@@ -70,8 +70,8 @@ dict_dfs = {'beds_genandacute_covid':df_beds_genandacute_covid,
             'beds_genandacute_noncovid':df_beds_genandacute_noncovid,
             'vacant_beds_genandacute':df_vacant_beds_genandacute,
             'ventbeds_covid':df_ventbeds_covid,
-            'ventbeds_noncovid':df_ventbeds_noncovid,
-            'vacant_ventbeds':df_vacant_ventbeds}
+            'vacant_ventbeds':df_vacant_ventbeds,
+            'ventbeds_noncovid':df_ventbeds_noncovid}
 
 
 for key, value in dict_dfs.items(): 
@@ -249,7 +249,7 @@ df_genandacute_noncovid =df_genandacute_noncovid.groupby(['Date']).sum().reset_i
 df_genandacute_noncovid['7 day average'] = df_genandacute_noncovid.rolling(window=7, on=df_genandacute_noncovid.index).mean()
 
 traces=[go.Scatter(
-    x = df_genandacute_noncovid.index,
+    x = df_genandacute_noncovid['Date'],
     y = df_genandacute_noncovid['7 day average'].round(0),
     line = dict(shape = 'linear', color = '#31446B', width= 4),
     hovertemplate = "<extra></extra><br>Date: %{x}<br>Non-covid patients: %{y}"
@@ -289,7 +289,7 @@ df_ventbeds_noncovid['7 day average'] = df_ventbeds_noncovid.rolling(window=7, o
 
 
 traces=[go.Scatter(
-    x = df_ventbeds_noncovid.index,
+    x = df_ventbeds_noncovid['Date'],
     y = df_ventbeds_noncovid['7 day average'].round(0),
     line = dict(shape = 'linear', color = '#31446B', width= 4),
     hovertemplate = "<extra></extra><br>Date: %{x}<br>Non-covid patients: %{y}"
@@ -339,20 +339,40 @@ def numpy_dt64_to_str(dt64):
 
 plot_var = 'beds_genandacute_noncovid_per_100000'
 
+
+
 #not sure why  they do the date slice so will ignore
 # wales_df = df_chloro[(df_chloro.Date > datetime(2020, 11, 10))]
+#df_chloro = df_chloro.round({'beds_genandacute_noncovid_per_100000':0,'ventbeds_noncovid_per_100000':0})
+#df_chloro = pd.read_csv('data_annimation_short.csv')
 
-days = np.sort(df_chloro.Date.unique())
+df_chloro1 = df_chloro.copy()
 
-plot_df = df_chloro[df_chloro.Date == days[-1]]
+df_chloro1['YearMonth'] = pd.to_datetime(df_chloro1['Date']).apply(lambda x: '{year}-{month}'.format(year=x.year, month=x.month))
 
-fig_data =go.Choroplethmapbox(geojson=wales_health_boards, locations=plot_df.id, 
-                              z=plot_df[plot_var],
+df_chloro1 = df_chloro1.groupby(['YearMonth', 'location', 'id'])['beds_genandacute_noncovid_per_100000'].mean()
+df_chloro1= df_chloro1.round(0)
+df_chloro1 = df_chloro1.reset_index()
+df_chloro1.rename(columns={'YearMonth': 'Date'})
+df_chloro1.columns = ['Date', 'location', 'id', 'beds_genandacute_noncovid_per_100000']
+df_chloro1['Date'] = pd.to_datetime(df_chloro1['Date'])
+
+
+
+days1 = np.sort(df_chloro1.Date.unique())
+
+plot_df1 = df_chloro1[df_chloro1.Date == days1[-1]]
+
+plot_df1 = plot_df1.sort_values(by=['Date', 'location'])
+df_chloro1 = df_chloro1.sort_values(by=['Date', 'location'])
+
+fig_data1 =go.Choroplethmapbox(name = 'General and acute beds occupied by non-covid patients per 100k people',
+                              geojson=wales_health_boards, locations=plot_df1.id, 
+                              z=plot_df1[plot_var],
                               zmin=0.0,
-                              zmax=df_chloro[plot_var].max(),
-                              name="",
-                              customdata = np.stack((pd.Series(plot_df['location']), 
-                                                     plot_df['beds_genandacute_noncovid_per_100000'].round(4)), 
+                              zmax=df_chloro1[plot_var].max(),
+                              customdata = np.stack((pd.Series(plot_df1['location']), 
+                                                     plot_df1['beds_genandacute_noncovid_per_100000'].round(4)), 
                                                     axis=-1),
                               hovertemplate = "<extra></extra><em>%{customdata[0]}  </em><br>beds_genandacute_noncovid_per_100000:  %{customdata[1]}",
 #                               colorbar={'title':'hospitalisations per 1000 people', 'titleside':'top', 'thickness':20},
@@ -380,14 +400,14 @@ fig_data =go.Choroplethmapbox(geojson=wales_health_boards, locations=plot_df.id,
 
 
 token = open(r'/Users/eoinvondy/Downloads/mapbox_token.txt', 'r').read()
-fig_layout = go.Layout(mapbox_style="light",
+fig_layout1 = go.Layout(mapbox_style="light",
                        mapbox_zoom=7,
                        mapbox_accesstoken=token,
                        mapbox_center={"lat": 52.461159, "lon": -3.622836},
                        margin={"r":0,"t":0,"l":0,"b":0},
                        plot_bgcolor=None)
 
-fig_layout["updatemenus"] = [dict(type="buttons",
+fig_layout1["updatemenus"] = [dict(type="buttons",
                                   buttons=[dict(label="Play",
                                                 method="animate",
                                                 args=[None,
@@ -412,7 +432,7 @@ fig_layout["updatemenus"] = [dict(type="buttons",
                                   y=0,
                                   yanchor="top")]
 
-sliders_dict = dict(active=len(days) - 1,
+sliders_dict1 = dict(active=len(days1) - 1,
                     visible=True,
                     yanchor="top",
                     xanchor="left",
@@ -428,20 +448,20 @@ sliders_dict = dict(active=len(days) - 1,
                     steps=[])
 
 import datetime as dt
-fig_frames = []
-for day in days:
-    plot_df = df_chloro[df_chloro.Date == day]
-    frame = go.Frame(data=[go.Choroplethmapbox(locations=plot_df.id,
-                                               z=plot_df[plot_var],
-                                               zmin=0.0,
+fig_frames1 = []
+for day in days1:
+    plot_df1 = df_chloro1[df_chloro1.Date == day]
+    frame = go.Frame(data=[go.Choroplethmapbox(locations=plot_df1.id,
+                                               z=plot_df1[plot_var],
+
                                                name="",
-                                               customdata = np.stack((pd.Series(plot_df['location']), 
-                                                     plot_df['beds_genandacute_noncovid_per_100000'].round(4)), 
+                                               customdata = np.stack((pd.Series(plot_df1['location']), 
+                                                     plot_df1['beds_genandacute_noncovid_per_100000'].round(4)), 
                                                     axis=-1),
                                                hovertemplate = "<extra></extra><em>%{customdata[0]}  </em><br>beds_genandacute_noncovid_per_100000:  %{customdata[1]}"
                                               )],
                      name=numpy_dt64_to_str(day))
-    fig_frames.append(frame)
+    fig_frames1.append(frame)
 
     slider_step = dict(args=[[numpy_dt64_to_str(day)],
                              dict(mode="immediate",
@@ -452,26 +472,49 @@ for day in days:
                             ],
                        method="animate",
                        label=numpy_dt64_to_str(day))
-    sliders_dict["steps"].append(slider_step)
+    sliders_dict1["steps"].append(slider_step)
 
-fig_layout.update(sliders=[sliders_dict])
+fig_layout1.update(sliders=[sliders_dict1])
 
 # Plot the figure 
-fig=go.Figure(data=fig_data, layout=fig_layout, frames=fig_frames)
-fig.update_layout(width=1800, height=800)
+fig1=go.Figure(data=fig_data1, layout=fig_layout1, frames=fig_frames1)
+fig1.update_layout(width=1800, height=800)
 #fig.show()
-st.plotly_chart(fig)
+st.plotly_chart(fig1)
+
+
+
+
+df_chloro2 = df_chloro.copy()
+
+df_chloro2['YearMonth'] = pd.to_datetime(df_chloro2['Date']).apply(lambda x: '{year}-{month}'.format(year=x.year, month=x.month))
+
+df_chloro2 = df_chloro2.groupby(['YearMonth', 'location', 'id'])['ventbeds_noncovid_per_100000'].mean()
+df_chloro2= df_chloro2.round(0)
+df_chloro2 = df_chloro2.reset_index()
+df_chloro2.rename(columns={'YearMonth': 'Date'})
+df_chloro2.columns = ['Date', 'location', 'id', 'ventbeds_noncovid_per_100000']
+df_chloro2['Date'] = pd.to_datetime(df_chloro2['Date'])
+
+
+days2 = np.sort(df_chloro2.Date.unique())
+
+plot_df2 = df_chloro2[df_chloro2.Date == days2[-1]]
+
+plot_df2 = plot_df2.sort_values(by=['Date', 'location'])
+df_chloro2 = df_chloro2.sort_values(by=['Date', 'location'])
+
 
 st.subheader('Ventilator beds occupied per 100k people')
 plot_var = 'ventbeds_noncovid_per_100000'
 
-fig_data =go.Choroplethmapbox(geojson=wales_health_boards, locations=plot_df.id, 
-                              z=plot_df[plot_var],
+fig_data2 =go.Choroplethmapbox(geojson=wales_health_boards, locations=plot_df2.id, 
+                              z=plot_df2[plot_var],
                               zmin=0.0,
-                              zmax=df_chloro[plot_var].max(),
+                              zmax=df_chloro2[plot_var].max(),
                               name="",
-                              customdata = np.stack((pd.Series(plot_df['location']), 
-                                                     plot_df['ventbeds_noncovid_per_100000'].round(4)), 
+                              customdata = np.stack((pd.Series(plot_df2['location']), 
+                                                     plot_df2['ventbeds_noncovid_per_100000'].round(4)), 
                                                     axis=-1),
                               hovertemplate = "<extra></extra><em>%{customdata[0]}  </em><br>ventbeds_noncovid_per_100000:  %{customdata[1]}",
 #                               colorbar={'title':'hospitalisations per 1000 people', 'titleside':'top', 'thickness':20},
@@ -496,14 +539,14 @@ fig_data =go.Choroplethmapbox(geojson=wales_health_boards, locations=plot_df.id,
                                                           size=12)),
                               )
 
-fig_layout = go.Layout(mapbox_style="light",
+fig_layout2 = go.Layout(mapbox_style="light",
                        mapbox_zoom=7,
                        mapbox_accesstoken=token,  
                        mapbox_center={"lat": 52.461159, "lon": -3.622836},
                        margin={"r":0,"t":0,"l":0,"b":0},
                        plot_bgcolor=None)
 
-fig_layout["updatemenus"] = [dict(type="buttons",
+fig_layout2["updatemenus"] = [dict(type="buttons",
                                   buttons=[dict(label="Play",
                                                 method="animate",
                                                 args=[None,
@@ -528,7 +571,7 @@ fig_layout["updatemenus"] = [dict(type="buttons",
                                   y=0,
                                   yanchor="top")]
 
-sliders_dict = dict(active=len(days) - 1,
+sliders_dict2 = dict(active=len(days2) - 1,
                     visible=True,
                     yanchor="top",
                     xanchor="left",
@@ -544,20 +587,20 @@ sliders_dict = dict(active=len(days) - 1,
                     steps=[])
 
 import datetime as dt
-fig_frames = []
-for day in days:
-    plot_df = df_chloro[df_chloro.Date == day]
-    frame = go.Frame(data=[go.Choroplethmapbox(locations=plot_df.id,
-                                               z=plot_df[plot_var],
+fig_frames2 = []
+for day in days2:
+    plot_df2 = df_chloro2[df_chloro2.Date == day]
+    frame = go.Frame(data=[go.Choroplethmapbox(locations=plot_df2.id,
+                                               z=plot_df2[plot_var],
                                                name="",
-                                               zmin=0.0,
-                                               customdata = np.stack((pd.Series(plot_df['location']), 
-                                                     plot_df['ventbeds_noncovid_per_100000'].round(4)), 
+
+                                               customdata = np.stack((pd.Series(plot_df2['location']), 
+                                                     plot_df2['ventbeds_noncovid_per_100000'].round(4)), 
                                                     axis=-1),
                                                hovertemplate = "<extra></extra><em>%{customdata[0]}  </em><br>ventbeds_noncovid_per_100000:  %{customdata[1]}"
                                               )],
                      name=numpy_dt64_to_str(day))
-    fig_frames.append(frame)
+    fig_frames2.append(frame)
 
     slider_step = dict(args=[[numpy_dt64_to_str(day)],
                              dict(mode="immediate",
@@ -568,12 +611,12 @@ for day in days:
                             ],
                        method="animate",
                        label=numpy_dt64_to_str(day))
-    sliders_dict["steps"].append(slider_step)
+    sliders_dict2["steps"].append(slider_step)
 
-fig_layout.update(sliders=[sliders_dict])
+fig_layout2.update(sliders=[sliders_dict2])
 
 # Plot the figure 
-fig=go.Figure(data=fig_data, layout=fig_layout, frames=fig_frames)
+fig=go.Figure(data=fig_data2, layout=fig_layout2, frames=fig_frames2)
 #fig.show()
 fig.update_layout(width=1800, height=800)
 st.plotly_chart(fig)
@@ -647,16 +690,18 @@ st.plotly_chart(fig)
 
 
 st.write('---\n')
-st.header('Daily bed use by non-covid patients for Swansea Bay, Cardiff and Vale and Cwm Taf Morgannwg University Health Boards')
+st.header('Daily bed use by non-covid patients for Swansea Bay, Cardiff and Vale and Aneurin Bevan University Health Boards')
 
 
 df = df_chloro[['Date', 'Local Health Board','ventbeds_noncovid_per_100000','beds_genandacute_noncovid_per_100000']].copy()
 
+df['Local Health Board'] = [x.strip().replace("Local ", "") for x in df['Local Health Board']] 
+
 df['Local Health Board'].unique()
 
-dict_color = {'Swansea Bay University Local Health Board': '#FFE945',
-              'Cardiff and Vale University Local Health Board':'#31446B',
-              'Cwm Taf Morgannwg University Local Health Board':'#CAB969'}
+dict_color = {'Swansea Bay University Health Board': '#FFE945',
+              'Cardiff and Vale University Health Board':'#31446B',
+              'Aneurin Bevan University Health Board':'#CAB969'}
 
 
 # Build graph
@@ -687,9 +732,9 @@ layout = go.Layout(
 
 data = []
 
-for i in ['Cwm Taf Morgannwg University Local Health Board',
-          'Swansea Bay University Local Health Board', 
-          'Cardiff and Vale University Local Health Board']:
+for i in ['Aneurin Bevan University Health Board',
+          'Swansea Bay University Health Board', 
+          'Cardiff and Vale University Health Board']:
     Date = df.loc[df['Local Health Board'] == i, "Date"]
     ventbeds_noncovid_per_100000 = df.loc[df['Local Health Board'] == i, 'ventbeds_noncovid_per_100000']
     line_chart = go.Scatter(
@@ -735,9 +780,9 @@ layout = go.Layout(
 
 data = []
 
-for i in ['Cwm Taf Morgannwg University Local Health Board',
-          'Swansea Bay University Local Health Board', 
-          'Cardiff and Vale University Local Health Board']:
+for i in ['Aneurin Bevan University Health Board',
+          'Swansea Bay University Health Board', 
+          'Cardiff and Vale University Health Board']:
     Date = df.loc[df['Local Health Board'] == i, "Date"]
     ventbeds_noncovid_per_100000 = df.loc[df['Local Health Board'] == i, "beds_genandacute_noncovid_per_100000"]
     line_chart = go.Scatter(
@@ -759,7 +804,7 @@ st.plotly_chart(fig, displayModeBar=False, showTips='False')
 
 df_vis = pd.read_csv('master_geos_wales.csv')
 
-df_quint = df_vis[df_vis.wimd_2019 < 192]
+df_quint = df_vis[df_vis.wimd_2019 < 383]
 
 df_count_lower=df_quint.groupby(df_quint['Health Board']).count()
 
