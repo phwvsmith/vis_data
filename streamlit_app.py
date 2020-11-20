@@ -399,7 +399,7 @@ fig_data1 =go.Choroplethmapbox(name = 'General and acute beds occupied by non-co
 
 
 
-token = open(r'/Users/eoinvondy/Downloads/mapbox_token.txt', 'r').read()
+token = open(r'mapbox_token.txt', 'r').read()
 fig_layout1 = go.Layout(mapbox_style="light",
                        mapbox_zoom=7,
                        mapbox_accesstoken=token,
