@@ -27,91 +27,96 @@ st.header('Bed use by non-covid patients (7 day average)')
 
 
 
+#
+##beds
+#df_beds_genandacute_noncovid = pd.read_csv('beds_healthboard_genandacute_non-covid.csv', index_col='Date')
+#df_ventbeds_noncovid = pd.read_csv('ventbeds_healthboard_non-covid.csv', index_col='Date')
+#
+#def clean_combine_dfs(df):
+#    cols = df.columns
+#    df.reset_index(inplace=True)
+#    list_dfs = []
+#    for col in cols:
+#        df_tmp = df[['Date', col]].copy()
+#        df_tmp.loc[:, f'{col}_name'] = col
+#        df_tmp = df_tmp.rename(columns={col: 'beds', f'{col}_name': 'Health Board'})
+#        list_dfs.append(df_tmp)
+#    df = pd.concat(list_dfs)
+#    return df
+#
+#dict_dfs = {'beds_genandacute_noncovid':df_beds_genandacute_noncovid,
+#            'ventbeds_noncovid':df_ventbeds_noncovid}
+#
+#
+#for key, value in dict_dfs.items(): 
+#    dict_dfs[key] = clean_combine_dfs(value)
+#
+#
+#df_beds_genandacute_noncovid = dict_dfs['beds_genandacute_noncovid']
+#df_ventbeds_noncovid = dict_dfs['ventbeds_noncovid']
+#
+#
+#df_beds_genandacute_noncovid = df_beds_genandacute_noncovid.rename(columns={'beds':'beds_genandacute_noncovid'})
+#df_ventbeds_noncovid = df_ventbeds_noncovid.rename(columns={'beds':'ventbeds_noncovid'})
+#
+#
+#df_beds = pd.concat([df_beds_genandacute_noncovid,
+#                     df_ventbeds_noncovid], axis=1)
+#
+#df_beds = df_beds[['beds_genandacute_noncovid','ventbeds_noncovid']]
+#
+#
+#df_beds['Health Board'] = df_beds_genandacute_noncovid['Health Board']
+#df_beds['Date'] = df_beds_genandacute_noncovid['Date'] 
+#df_beds['Health Board'] = [i.rstrip() for i in df_beds['Health Board']]
+#
+#
+#def get_location_info(df):
+#    locator = Nominatim(user_agent='myGeocoder')
+#    df = df.reset_index(drop=True)
+#    df['Local Health Board'] = df['Health Board']
+#    df = df.rename(columns={'Health Board':'address'})
+#
+#    df = df.replace({'address': {'Betsi Cadwaladr University Local Health Board': 'Bangor LL57 2PW, Wales',
+#                                          'Powys Teaching Local Health Board': 'Powys LD3 0LU, Wales',
+#                                          'Hywel Dda University Local Health Board': 'Carmarthen SA31 3BB, Wales',
+#                                          'Aneurin Bevan University Local Health Board': 'Lodge Road, Caerleon, Newport NP18 3XQ, Wales',
+#                                          'Cardiff and Vale University Local Health Board':'Heath Park, Cardiff CF14 4XW, Wales',
+#                                          'Cwm Taf Morgannwg University Local Health Board': 'Abercynon, Rhondda Cynon Taff CF45 4SN, Wales',
+#                                          'Swansea Bay University Local Health Board':'Baglan Energy Park, Baglan, Port Talbot SA12 7BR, Wales',
+#                                          'Velindre University NHS Trust':'Parc, Nantgarw, Cardiff CF15 7QZ'}})
+#
+#
+#    addresses = df['address'].unique()
+#
+#    dict_points = {}
+#    # 1 - conveneint function to delay between geocoding calls
+#    geocode = RateLimiter(locator.geocode, min_delay_seconds=1)
+#
+#    for i in addresses:
+#        dict_points[i] = geocode(i)
+#    
+#    
+#    list_coordinates = []
+#    for i in addresses:
+#        coordinate = list(dict_points[i][1])
+#        list_coordinates.append(coordinate)
+#    dict_coordintates = {}
+#    for i,j in zip(addresses,list_coordinates):
+#        dict_coordintates[i] = j
+#
+#    df['coordinates'] = [dict_coordintates[i] for i in df['address']]
+#    df['lat'] = [i[0] for i in df['coordinates']]
+#    df['lon'] = [i[1] for i in df['coordinates']]
+#    
+#    return df
+#
+#df_beds = get_location_info(df_beds)
+#
+#df_beds.to_csv('override.csv')
+df_beds=pd.read_csv('override.csv', index_col= 'Unnamed: 0')
 
-#beds
-df_beds_genandacute_noncovid = pd.read_csv('beds_healthboard_genandacute_non-covid.csv', index_col='Date')
-df_ventbeds_noncovid = pd.read_csv('ventbeds_healthboard_non-covid.csv', index_col='Date')
 
-def clean_combine_dfs(df):
-    cols = df.columns
-    df.reset_index(inplace=True)
-    list_dfs = []
-    for col in cols:
-        df_tmp = df[['Date', col]].copy()
-        df_tmp.loc[:, f'{col}_name'] = col
-        df_tmp = df_tmp.rename(columns={col: 'beds', f'{col}_name': 'Health Board'})
-        list_dfs.append(df_tmp)
-    df = pd.concat(list_dfs)
-    return df
-
-dict_dfs = {'beds_genandacute_noncovid':df_beds_genandacute_noncovid,
-            'ventbeds_noncovid':df_ventbeds_noncovid}
-
-
-for key, value in dict_dfs.items(): 
-    dict_dfs[key] = clean_combine_dfs(value)
-
-
-df_beds_genandacute_noncovid = dict_dfs['beds_genandacute_noncovid']
-df_ventbeds_noncovid = dict_dfs['ventbeds_noncovid']
-
-
-df_beds_genandacute_noncovid = df_beds_genandacute_noncovid.rename(columns={'beds':'beds_genandacute_noncovid'})
-df_ventbeds_noncovid = df_ventbeds_noncovid.rename(columns={'beds':'ventbeds_noncovid'})
-
-
-df_beds = pd.concat([df_beds_genandacute_noncovid,
-                     df_ventbeds_noncovid], axis=1)
-
-df_beds = df_beds[['beds_genandacute_noncovid','ventbeds_noncovid']]
-
-
-df_beds['Health Board'] = df_beds_genandacute_noncovid['Health Board']
-df_beds['Date'] = df_beds_genandacute_noncovid['Date'] 
-df_beds['Health Board'] = [i.rstrip() for i in df_beds['Health Board']]
-
-
-def get_location_info(df):
-    locator = Nominatim(user_agent='myGeocoder')
-    df = df.reset_index(drop=True)
-    df['Local Health Board'] = df['Health Board']
-    df = df.rename(columns={'Health Board':'address'})
-
-    df = df.replace({'address': {'Betsi Cadwaladr University Local Health Board': 'Bangor LL57 2PW, Wales',
-                                          'Powys Teaching Local Health Board': 'Powys LD3 0LU, Wales',
-                                          'Hywel Dda University Local Health Board': 'Carmarthen SA31 3BB, Wales',
-                                          'Aneurin Bevan University Local Health Board': 'Lodge Road, Caerleon, Newport NP18 3XQ, Wales',
-                                          'Cardiff and Vale University Local Health Board':'Heath Park, Cardiff CF14 4XW, Wales',
-                                          'Cwm Taf Morgannwg University Local Health Board': 'Abercynon, Rhondda Cynon Taff CF45 4SN, Wales',
-                                          'Swansea Bay University Local Health Board':'Baglan Energy Park, Baglan, Port Talbot SA12 7BR, Wales',
-                                          'Velindre University NHS Trust':'Parc, Nantgarw, Cardiff CF15 7QZ'}})
-
-
-    addresses = df['address'].unique()
-
-    dict_points = {}
-    # 1 - conveneint function to delay between geocoding calls
-    geocode = RateLimiter(locator.geocode, min_delay_seconds=1)
-
-    for i in addresses:
-        dict_points[i] = geocode(i)
-    
-    
-    list_coordinates = []
-    for i in addresses:
-        coordinate = list(dict_points[i][1])
-        list_coordinates.append(coordinate)
-    dict_coordintates = {}
-    for i,j in zip(addresses,list_coordinates):
-        dict_coordintates[i] = j
-
-    df['coordinates'] = [dict_coordintates[i] for i in df['address']]
-    df['lat'] = [i[0] for i in df['coordinates']]
-    df['lon'] = [i[1] for i in df['coordinates']]
-    
-    return df
-
-df_beds = get_location_info(df_beds)
 
 #Get population info for health boards and clean up the dataframe
 population_health_boards = pd.read_csv('popln_health_boards.csv')
