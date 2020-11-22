@@ -20,7 +20,7 @@ st.set_page_config(
         layout='wide')
 
 st.write('---\n')
-st.title('Visualisation of Data Project')
+st.title('COVID-19 & NHS Wales - visualisation application')
 
 st.write('---\n')
 st.header('Bed use by non-covid patients (7 day average)')
