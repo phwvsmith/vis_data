@@ -117,7 +117,6 @@ st.header('Bed use by non-covid patients (7 day average)')
 df_beds=pd.read_csv('override.csv', index_col= 'Unnamed: 0')
 
 
-
 #Get population info for health boards and clean up the dataframe
 population_health_boards = pd.read_csv('popln_health_boards.csv')
 population_health_boards = population_health_boards[['Unnamed: 1','All ages .1']]
@@ -442,7 +441,7 @@ fig_layout1.update(sliders=[sliders_dict1])
 
 # Plot the figure 
 fig1=go.Figure(data=fig_data1, layout=fig_layout1, frames=fig_frames1)
-fig1.update_layout(width=750, height=450)
+fig1.update_layout(width=750, height=400)
 #fig.show()
 st.plotly_chart(fig1)
 
@@ -582,7 +581,7 @@ fig_layout2.update(sliders=[sliders_dict2])
 # Plot the figure 
 fig=go.Figure(data=fig_data2, layout=fig_layout2, frames=fig_frames2)
 #fig.show()
-fig.update_layout(width=700, height=450)
+fig.update_layout(width=700, height=400)
 st.plotly_chart(fig)
 
 
