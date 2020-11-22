@@ -16,7 +16,7 @@ from geopy.extra.rate_limiter import RateLimiter
 
 
 st.set_page_config(
-        page_title="Visualisation of Data",
+        page_title="COVID-19 & NHS Wales - visualisation application",
         layout='wide')
 
 st.write('---\n')
