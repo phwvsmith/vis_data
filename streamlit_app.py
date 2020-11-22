@@ -26,33 +26,11 @@ st.write('---\n')
 st.header('Bed use by non-covid patients (7 day average)')
 
 
-#AandE dataframe
-df_AandE = pd.read_csv('AandEattendance_localhealthboard.csv', index_col='Date')
-
-cols = df_AandE.columns
-df_AandE.reset_index(inplace=True)
-
-list_dfs = []
-for col in cols:
-    df_tmp = df_AandE[['Date', col]].copy()
-    df_tmp.loc[:, f'{col}_name'] = col
-    df_tmp = df_tmp.rename(columns={col: 'A and E attendance', f'{col}_name': 'Health Board'})
-    list_dfs.append(df_tmp)
-df_AandE = pd.concat(list_dfs)
-df_AandE['Health Board'] = [i.rstrip() for i in df_AandE['Health Board']]
-
-
 
 
 #beds
-df_beds_genandacute_covid = pd.read_csv('beds_healthboard_genandacute_covid.csv', index_col='Date')
 df_beds_genandacute_noncovid = pd.read_csv('beds_healthboard_genandacute_non-covid.csv', index_col='Date')
-df_vacant_beds_genandacute = pd.read_csv('vacantbeds_healthboard_genandacute_non-covid.csv', index_col='Date')
-
-df_ventbeds_covid = pd.read_csv('ventbeds_healthboard_covid.csv', index_col='Date')
 df_ventbeds_noncovid = pd.read_csv('ventbeds_healthboard_non-covid.csv', index_col='Date')
-df_vacant_ventbeds = pd.read_csv('vacantventbeds_healthboard.csv', index_col='Date')
-
 
 def clean_combine_dfs(df):
     cols = df.columns
@@ -66,11 +44,7 @@ def clean_combine_dfs(df):
     df = pd.concat(list_dfs)
     return df
 
-dict_dfs = {'beds_genandacute_covid':df_beds_genandacute_covid,
-            'beds_genandacute_noncovid':df_beds_genandacute_noncovid,
-            'vacant_beds_genandacute':df_vacant_beds_genandacute,
-            'ventbeds_covid':df_ventbeds_covid,
-            'vacant_ventbeds':df_vacant_ventbeds,
+dict_dfs = {'beds_genandacute_noncovid':df_beds_genandacute_noncovid,
             'ventbeds_noncovid':df_ventbeds_noncovid}
 
 
@@ -78,35 +52,24 @@ for key, value in dict_dfs.items():
     dict_dfs[key] = clean_combine_dfs(value)
 
 
-df_beds_genandacute_covid = dict_dfs['beds_genandacute_covid']
 df_beds_genandacute_noncovid = dict_dfs['beds_genandacute_noncovid']
-df_vacant_beds_genandacute = dict_dfs['vacant_beds_genandacute']
-df_ventbeds_covid = dict_dfs['ventbeds_covid']
 df_ventbeds_noncovid = dict_dfs['ventbeds_noncovid']
-df_vacant_ventbeds = dict_dfs['vacant_ventbeds']
 
 
-df_beds_genandacute_covid = df_beds_genandacute_covid.rename(columns={'beds':'beds_genandacute_covid'})
 df_beds_genandacute_noncovid = df_beds_genandacute_noncovid.rename(columns={'beds':'beds_genandacute_noncovid'})
-df_vacant_beds_genandacute = df_vacant_beds_genandacute.rename(columns={'beds':'vacant_beds_genandacute'})
-df_ventbeds_covid = df_ventbeds_covid.rename(columns={'beds':'ventbeds_covid'})
 df_ventbeds_noncovid = df_ventbeds_noncovid.rename(columns={'beds':'ventbeds_noncovid'})
-df_vacant_ventbeds = df_vacant_ventbeds.rename(columns={'beds':'vacant_ventbeds'})
 
 
-df_beds = pd.concat([df_beds_genandacute_covid, df_beds_genandacute_noncovid,
-                     df_vacant_beds_genandacute, df_ventbeds_covid,
-                     df_ventbeds_noncovid, df_vacant_ventbeds], axis=1)
+df_beds = pd.concat([df_beds_genandacute_noncovid,
+                     df_ventbeds_noncovid], axis=1)
 
-df_beds = df_beds[['beds_genandacute_covid',
-'beds_genandacute_noncovid',
-'vacant_beds_genandacute',
-'ventbeds_covid',
-'ventbeds_noncovid',
-'vacant_ventbeds',]]
-df_beds['Date'] = df_beds_genandacute_covid['Date']
-df_beds['Health Board'] = df_beds_genandacute_covid['Health Board']
+df_beds = df_beds[['beds_genandacute_noncovid','ventbeds_noncovid']]
+
+
+df_beds['Health Board'] = df_beds_genandacute_noncovid['Health Board']
+df_beds['Date'] = df_beds_genandacute_noncovid['Date'] 
 df_beds['Health Board'] = [i.rstrip() for i in df_beds['Health Board']]
+
 
 def get_location_info(df):
     locator = Nominatim(user_agent='myGeocoder')
@@ -132,7 +95,8 @@ def get_location_info(df):
 
     for i in addresses:
         dict_points[i] = geocode(i)
-
+    
+    
     list_coordinates = []
     for i in addresses:
         coordinate = list(dict_points[i][1])
@@ -192,17 +156,6 @@ df_beds = df_beds.sort_values('Date', ascending=True)
 df_beds['Date'] = df_beds['Date'].dt.strftime('%d/%m/%Y')
 
 
-#list of each date, turn into a set, turn each to datetime, sort them,
-#convert to string in mon day format and assign to days 
-days = [df_beds['Date'][i] for i in df_beds.index]
-days_set = set(days)
-
-from datetime import datetime
-y = [datetime.strptime(x,'%d/%m/%Y') for x in days_set]
-y = sorted(y)
-days = [datetime.strftime(x,'%d/%m/%Y') for x in y]
-
-
 #Make a copy of dataframe make a copy of 'Local Health Board' called location
 #then change 'Date', 'Local Health Board' to multi index and take out any nans (shouldn't be there anymore)
 # df_beds = df_beds.copy()
@@ -248,6 +201,8 @@ df_genandacute_noncovid =df_genandacute_noncovid.groupby(['Date']).sum().reset_i
 
 df_genandacute_noncovid['7 day average'] = df_genandacute_noncovid.rolling(window=7, on=df_genandacute_noncovid.index).mean()
 
+st.write('   \n')
+st.write('**General and acute beds**')
 traces=[go.Scatter(
     x = df_genandacute_noncovid['Date'],
     y = df_genandacute_noncovid['7 day average'].round(0),
@@ -257,12 +212,14 @@ traces=[go.Scatter(
 )]
 
 layout = go.Layout(
-    title = 'General and acute beds',
+#    title = 'General and acute beds',
+#    font=dict(family='sans-serif'),
     xaxis_title="Date",
     yaxis_title="Patients",
     plot_bgcolor='rgba(0,0,0,0)',
     hoverdistance=100, # Distance to show hover label of data point
     spikedistance=1000, # Distance to show spike
+    margin={"r":0,"t":0,"l":0,"b":0},
     xaxis=dict(
         linecolor="#BCCCDC",
         showspikes=True, # Show spike line for X-axis
@@ -279,7 +236,7 @@ fig = go.Figure(data=traces,layout=layout)
 fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
 fig.update_yaxes(showline=True, linewidth=2, linecolor='black')
 #fig.show()
-fig.update_layout(width=1800, height=800)
+fig.update_layout(width=775, height=355)
 st.plotly_chart(fig)
 
 df_ventbeds_noncovid = df_chloro[['Date', 'ventbeds_noncovid']].copy()
@@ -287,7 +244,8 @@ df_ventbeds_noncovid.Date = pd.to_datetime(df_ventbeds_noncovid.Date, dayfirst=T
 df_ventbeds_noncovid =df_ventbeds_noncovid.groupby(['Date']).sum().reset_index()
 df_ventbeds_noncovid['7 day average'] = df_ventbeds_noncovid.rolling(window=7, on=df_ventbeds_noncovid.index).mean()
 
-
+st.write('   \n')
+st.write('**Ventilator beds**')
 traces=[go.Scatter(
     x = df_ventbeds_noncovid['Date'],
     y = df_ventbeds_noncovid['7 day average'].round(0),
@@ -299,12 +257,13 @@ traces=[go.Scatter(
 )]
 
 layout = go.Layout(
-    title = 'Ventilator beds',
+#    title = 'Ventilator beds',
 #     barmode = 'stack'
     xaxis_title="Date",
     yaxis_title="Patients",
     hoverdistance=100, # Distance to show hover label of data point
     spikedistance=1000, # Distance to show spike
+    margin={"r":0,"t":0,"l":0,"b":0},
     xaxis=dict(
         linecolor="#BCCCDC",
         showspikes=True, # Show spike line for X-axis
@@ -322,7 +281,7 @@ fig = go.Figure(data=traces,layout=layout)
 fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
 fig.update_yaxes(showline=True, linewidth=2, linecolor='black')
 #fig.show()
-fig.update_layout(width=1800, height=800)
+fig.update_layout(width=775, height=355)
 st.plotly_chart(fig)
 
 
@@ -387,7 +346,7 @@ fig_data1 =go.Choroplethmapbox(name = 'General and acute beds occupied by non-co
 #                                             xpad=30,
 #                                             xanchor="right",
                                             bgcolor=None,
-                                            title=dict(text="beds_genandacute_noncovid_per_100000",
+                                            title=dict(text="general and acute noncovid per 100k",
                                                        font=dict(size=14)),
                                             tickvals=[0,50,100,150,200,250,300],
                                             ticktext=["0", "50", "100", "150", "200", "250", "300"],
@@ -401,7 +360,7 @@ fig_data1 =go.Choroplethmapbox(name = 'General and acute beds occupied by non-co
 
 token = open(r'mapbox_token.txt', 'r').read()
 fig_layout1 = go.Layout(mapbox_style="light",
-                       mapbox_zoom=7,
+                       mapbox_zoom=6,
                        mapbox_accesstoken=token,
                        mapbox_center={"lat": 52.461159, "lon": -3.622836},
                        margin={"r":0,"t":0,"l":0,"b":0},
@@ -478,7 +437,7 @@ fig_layout1.update(sliders=[sliders_dict1])
 
 # Plot the figure 
 fig1=go.Figure(data=fig_data1, layout=fig_layout1, frames=fig_frames1)
-fig1.update_layout(width=1800, height=800)
+fig1.update_layout(width=750, height=450)
 #fig.show()
 st.plotly_chart(fig1)
 
@@ -529,7 +488,7 @@ fig_data2 =go.Choroplethmapbox(geojson=wales_health_boards, locations=plot_df2.i
 #                                             xpad=30,
 #                                             xanchor="right",
                                             bgcolor=None,
-                                            title=dict(text="beds_genandacute_noncovid_per_100000",
+                                            title=dict(text="ventilator noncovid per 100k",
                                                        font=dict(size=14)),
                                             tickvals=[0,2,4,6,8,10],
                                             ticktext=["0", "2", "4", "6", "8", "10"],
@@ -540,7 +499,7 @@ fig_data2 =go.Choroplethmapbox(geojson=wales_health_boards, locations=plot_df2.i
                               )
 
 fig_layout2 = go.Layout(mapbox_style="light",
-                       mapbox_zoom=7,
+                       mapbox_zoom=6,
                        mapbox_accesstoken=token,  
                        mapbox_center={"lat": 52.461159, "lon": -3.622836},
                        margin={"r":0,"t":0,"l":0,"b":0},
@@ -618,12 +577,15 @@ fig_layout2.update(sliders=[sliders_dict2])
 # Plot the figure 
 fig=go.Figure(data=fig_data2, layout=fig_layout2, frames=fig_frames2)
 #fig.show()
-fig.update_layout(width=1800, height=800)
+fig.update_layout(width=700, height=450)
 st.plotly_chart(fig)
 
 
 st.write('---\n')
 st.header('Mean daily bed use by non-covid patients for each Local Health Board')
+
+st.write('   \n')
+st.write('**General and acute beds**')
 
 glglggl =df_chloro.groupby(df_chloro['Local Health Board']).mean()
 
@@ -641,11 +603,12 @@ traces=[go.Bar(
 )]
 
 layout = go.Layout(
-    title = 'General and acute beds',
+#    title = 'General and acute beds',
 #     barmode = 'stack'
     yaxis_title="Health Board",
     xaxis_title="Patients",
-    plot_bgcolor='rgba(0,0,0,0)'
+    plot_bgcolor='rgba(0,0,0,0)',
+    margin={"r":0,"t":0,"l":50,"b":0},
 )
 
 fig = go.Figure(data=traces,layout=layout)
@@ -653,10 +616,11 @@ fig = go.Figure(data=traces,layout=layout)
 fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
 fig.update_yaxes(showline=True, linewidth=2, linecolor='black')
 #fig.show()
-fig.update_layout(width=1800, height=800)
+fig.update_layout(width=775, height=355)
 st.plotly_chart(fig)
 
-
+st.write('   \n')
+st.write('**Ventilator beds**')
 glglggl = glglggl.sort_values('ventbeds_noncovid_per_100000')
 traces=[go.Bar(
     y = glglggl.index,
@@ -671,11 +635,12 @@ traces=[go.Bar(
 )]
 
 layout = go.Layout(
-    title = 'Ventilator beds',
+#    title = 'Ventilator beds',
 #     barmode = 'stack'
     yaxis_title="Health Board",
     xaxis_title="Patients",
-    plot_bgcolor='rgba(0,0,0,0)'
+    plot_bgcolor='rgba(0,0,0,0)',
+    margin={"r":0,"t":0,"l":0,"b":0},
 )
 
 fig = go.Figure(data=traces,layout=layout)
@@ -683,14 +648,24 @@ fig = go.Figure(data=traces,layout=layout)
 fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
 fig.update_yaxes(showline=True, linewidth=2, linecolor='black')
 #fig.show()
-fig.update_layout(width=1800, height=800)
+fig.update_layout(width=775, height=355)
 st.plotly_chart(fig)
 
 
 
 
 st.write('---\n')
-st.header('Daily bed use by non-covid patients for Swansea Bay, Cardiff and Vale and Aneurin Bevan University Health Boards')
+
+
+st.header('Health Boards by high risk individuals')
+
+st.subheader('Health Boards with highest proportion of black, asian and minority ethnic groups:')
+st.write('   \n')
+st.write('1.Cardiff and Vale Health Board')
+st.write('2.Swansea Bay Health Board')
+st.write('3.Aneurin Bevan University Health Board')
+
+#st.subheader('Daily bed use by non-covid patients for Swansea Bay, Cardiff and Vale and Aneurin Bevan University Health Boards')
 
 
 df = df_chloro[['Date', 'Local Health Board','ventbeds_noncovid_per_100000','beds_genandacute_noncovid_per_100000']].copy()
@@ -703,60 +678,13 @@ dict_color = {'Swansea Bay University Health Board': '#FFE945',
               'Cardiff and Vale University Health Board':'#31446B',
               'Aneurin Bevan University Health Board':'#CAB969'}
 
-
-# Build graph
-
-layout = go.Layout(
-    title='Ventilator beds occupied by non-covid patients per 100k people',
-    plot_bgcolor="#FFFFFF",
-    legend=dict(
-        # Adjust click behavior
-        itemclick="toggleothers",
-        itemdoubleclick="toggle",
-    ),
-    xaxis=dict(
-        title="Date",
-        linecolor="#BCCCDC",
-        showspikes=True, # Show spike line for X-axis
-        # Format spike
-        spikethickness=2,
-        spikedash="dot",
-        spikecolor="#999999",
-        spikemode="across",
-    ),
-    yaxis=dict(
-        title="Non-covid patients",
-        linecolor="#BCCCDC"
-    )
-)
-
-data = []
-
-for i in ['Aneurin Bevan University Health Board',
-          'Swansea Bay University Health Board', 
-          'Cardiff and Vale University Health Board']:
-    Date = df.loc[df['Local Health Board'] == i, "Date"]
-    ventbeds_noncovid_per_100000 = df.loc[df['Local Health Board'] == i, 'ventbeds_noncovid_per_100000']
-    line_chart = go.Scatter(
-        x=Date,
-        y=ventbeds_noncovid_per_100000,
-        name=i,
-        line = dict(shape = 'linear', color = dict_color[i], width= 3),
-        
-    )
-    data.append(line_chart)
-
-fig = go.Figure(data=data, layout=layout)
-fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
-fig.update_yaxes(showline=True, linewidth=2, linecolor='black')
-#fig.show(config={"displayModeBar": False, "showTips": False}) # Remove floating menu and unnecesary dialog box
-fig.update_layout(width=1800, height=800)
-st.plotly_chart(fig, displayModeBar=False, showTips='False')
-
+st.write('   \n')
+st.write('**General and acute beds occupied by non-covid patients per 100k people**')
 # Build graph
 layout = go.Layout(
-    title='General and acute beds occupied by non-covid patients per 100k people',
+#    title='General and acute beds occupied by non-covid patients per 100k people',
     plot_bgcolor="#FFFFFF",
+    margin={"r":0,"t":0,"l":0,"b":0},
     legend=dict(
         # Adjust click behavior
         itemclick="toggleothers",
@@ -798,8 +726,59 @@ fig = go.Figure(data=data, layout=layout)
 fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
 fig.update_yaxes(showline=True, linewidth=2, linecolor='black')
 #fig.show(config={"displayModeBar": False, "showTips": False}) # Remove floating menu and unnecesary dialog box
-fig.update_layout(width=1800, height=800)
+fig.update_layout(width=975, height=355)
 st.plotly_chart(fig, displayModeBar=False, showTips='False')
+
+st.write('   \n')
+st.write('**Ventilator beds occupied by non-covid patients per 100k people**')
+layout = go.Layout(
+#    title='Ventilator beds occupied by non-covid patients per 100k people',
+    plot_bgcolor="#FFFFFF",
+    margin={"r":0,"t":0,"l":0,"b":0},
+    legend=dict(
+        # Adjust click behavior
+        itemclick="toggleothers",
+        itemdoubleclick="toggle",
+    ),
+    xaxis=dict(
+        title="Date",
+        linecolor="#BCCCDC",
+        showspikes=True, # Show spike line for X-axis
+        # Format spike
+        spikethickness=2,
+        spikedash="dot",
+        spikecolor="#999999",
+        spikemode="across",
+    ),
+    yaxis=dict(
+        title="Non-covid patients",
+        linecolor="#BCCCDC"
+    )
+)
+
+data = []
+
+for i in ['Aneurin Bevan University Health Board',
+          'Swansea Bay University Health Board', 
+          'Cardiff and Vale University Health Board']:
+    Date = df.loc[df['Local Health Board'] == i, "Date"]
+    ventbeds_noncovid_per_100000 = df.loc[df['Local Health Board'] == i, 'ventbeds_noncovid_per_100000']
+    line_chart = go.Scatter(
+        x=Date,
+        y=ventbeds_noncovid_per_100000,
+        name=i,
+        line = dict(shape = 'linear', color = dict_color[i], width= 3),
+        
+    )
+    data.append(line_chart)
+
+fig = go.Figure(data=data, layout=layout)
+fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
+fig.update_yaxes(showline=True, linewidth=2, linecolor='black')
+#fig.show(config={"displayModeBar": False, "showTips": False}) # Remove floating menu and unnecesary dialog box
+fig.update_layout(width=975, height=355)
+st.plotly_chart(fig, displayModeBar=False, showTips='False')
+
 
 
 df_vis = pd.read_csv('master_geos_wales.csv')
@@ -814,10 +793,8 @@ df_count_total['Percentage most deprived'] = df_count_lower['id']/df_count_total
 
 df_count_total = df_count_total.sort_values('Percentage most deprived')
 
-st.write('---\n')
-st.header('Health Boards by high risk individuals')
-
-
+st.write('   \n')
+st.write('**Health Boards by percentage of LLSOAs ranked as \"most deprived\" by Welsh Index of Multiple Deprivation**')
 traces=[go.Bar(
     y = df_count_total.index,
     x = df_count_total['Percentage most deprived'].round(1),
@@ -829,11 +806,12 @@ traces=[go.Bar(
 )]
 
 layout = go.Layout(
-    title = 'Health Boards by percentage of LLSOAs ranked as \"most deprived\" by Welsh Index of Multiple Deprivation',
+#    title = 'Health Boards by percentage of LLSOAs ranked as \"most deprived\" by Welsh Index of Multiple Deprivation',
 #     barmode = 'stack'
     yaxis_title="Health Board",
     xaxis_title="Percentage most deprived",
-    plot_bgcolor='rgba(0,0,0,0)'
+    plot_bgcolor='rgba(0,0,0,0)',
+    margin={"r":0,"t":0,"l":50,"b":0}
 )
 
 fig = go.Figure(data=traces,layout=layout)
@@ -841,7 +819,7 @@ fig = go.Figure(data=traces,layout=layout)
 fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
 fig.update_yaxes(showline=True, linewidth=2, linecolor='black')
 #fig.show()
-fig.update_layout(width=1800, height=800)
+fig.update_layout(width=775, height=355)
 st.plotly_chart(fig)
 
 
@@ -874,15 +852,16 @@ layout = go.Layout(
 #     barmode = 'stack'
     yaxis_title="Health Board",
     xaxis_title="Aged 85 and over per 100k people",
-    plot_bgcolor='rgba(0,0,0,0)'
+    plot_bgcolor='rgba(0,0,0,0)',
+    margin={"r":0,"t":0,"l":0,"b":0}
 )
 
 fig = go.Figure(data=traces,layout=layout)
 # pyo.plot(fig, filename='line3.html')
 fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
 fig.update_yaxes(showline=True, linewidth=2, linecolor='black')
-fig.update_layout(width=1800, height=800)
-st.plotly_chart(fig)
+fig.update_layout(width=575, height=355)
+#st.plotly_chart(fig)
 
 
 
