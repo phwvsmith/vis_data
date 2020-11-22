@@ -864,7 +864,6 @@ fig.update_layout(width=575, height=355)
 #st.plotly_chart(fig)
 
 
-
 #
 #
 #fig = px.scatter_mapbox(df_vis, lat="long", lon="lat", hover_data=["wimd_2019"],
