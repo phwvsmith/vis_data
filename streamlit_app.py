@@ -25,8 +25,8 @@ st.title('COVID-19 & NHS Wales - visualisation application')
 st.write('---\n')
 st.header('Bed use by non-covid patients (7 day average)')
 
-
-
+#
+#
 #
 ##beds
 #df_beds_genandacute_noncovid = pd.read_csv('beds_healthboard_genandacute_non-covid.csv', index_col='Date')
@@ -113,6 +113,55 @@ st.header('Bed use by non-covid patients (7 day average)')
 #
 #df_beds = get_location_info(df_beds)
 #
+#
+#
+#
+###***Nominatim stopped working so hacking a solution using past dataframe
+#
+#
+#
+#    df_beds = df_beds.reset_index(drop=True)
+#    df_beds['Local Health Board'] = df_beds['Health Board']
+#    df_beds = df_beds.rename(columns={'Health Board':'address'})
+#
+#    df_beds = df_beds.replace({'address': {'Betsi Cadwaladr University Local Health Board': 'Bangor LL57 2PW, Wales',
+#                                          'Powys Teaching Local Health Board': 'Powys LD3 0LU, Wales',
+#                                          'Hywel Dda University Local Health Board': 'Carmarthen SA31 3BB, Wales',
+#                                          'Aneurin Bevan University Local Health Board': 'Lodge Road, Caerleon, Newport NP18 3XQ, Wales',
+#                                          'Cardiff and Vale University Local Health Board':'Heath Park, Cardiff CF14 4XW, Wales',
+#                                          'Cwm Taf Morgannwg University Local Health Board': 'Abercynon, Rhondda Cynon Taff CF45 4SN, Wales',
+#                                          'Swansea Bay University Local Health Board':'Baglan Energy Park, Baglan, Port Talbot SA12 7BR, Wales',
+#                                          'Velindre University NHS Trust':'Parc, Nantgarw, Cardiff CF15 7QZ'}})
+#
+#
+#    addresses = df_beds['address'].unique()
+#
+#
+#
+#
+#    for i in addresses:
+#        dict_points[i] = [dfTEMP['coordinates'][dfTEMP['address']==i].iloc[0], dfTEMP['lat'][dfTEMP['address']==i].iloc[0], dfTEMP['lon'][dfTEMP['address']==i].iloc[0]]
+#
+#
+#    df['coordinates'] = [dict_points[i][0] for i in addresses]
+#
+#    df_beds['coordinates'] = [dict_points[i][0] for i in df_beds['address']]
+#    df_beds['lat'] = [dict_points[i][1] for i in df_beds['address']]
+#    df_beds['lon'] = [dict_points[i][2] for i in df_beds['address']]
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#dfTEMP=pd.read_csv('override.csv', index_col= 'Unnamed: 0')
+
+
+
 #df_beds.to_csv('override.csv')
 df_beds=pd.read_csv('override.csv', index_col= 'Unnamed: 0')
 
@@ -221,7 +270,7 @@ layout = go.Layout(
     xaxis_title="Date",
     yaxis_title="Patients",
     plot_bgcolor='rgba(0,0,0,0)',
-    hoverdistance=100, # Distance to show hover label of data point
+    hoverdistance=1000, # Distance to show hover label of data point
     spikedistance=1000, # Distance to show spike
     margin={"r":0,"t":0,"l":0,"b":0},
     xaxis=dict(
@@ -265,7 +314,7 @@ layout = go.Layout(
 #     barmode = 'stack'
     xaxis_title="Date",
     yaxis_title="Patients",
-    hoverdistance=100, # Distance to show hover label of data point
+    hoverdistance=1000, # Distance to show hover label of data point
     spikedistance=1000, # Distance to show spike
     margin={"r":0,"t":0,"l":0,"b":0},
     xaxis=dict(
