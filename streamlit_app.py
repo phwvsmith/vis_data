@@ -413,7 +413,7 @@ fig_data1 =go.Choroplethmapbox(name = 'General and acute beds occupied by non-co
 
 token = open(r'mapbox_token.txt', 'r').read()
 fig_layout1 = go.Layout(mapbox_style="light",
-                       mapbox_zoom=6,
+                       mapbox_zoom=5.5,
                        mapbox_accesstoken=token,
                        mapbox_center={"lat": 52.461159, "lon": -3.622836},
                        margin={"r":0,"t":0,"l":0,"b":0},
@@ -552,7 +552,7 @@ fig_data2 =go.Choroplethmapbox(geojson=wales_health_boards, locations=plot_df2.i
                               )
 
 fig_layout2 = go.Layout(mapbox_style="light",
-                       mapbox_zoom=6,
+                       mapbox_zoom=5.5,
                        mapbox_accesstoken=token,  
                        mapbox_center={"lat": 52.461159, "lon": -3.622836},
                        margin={"r":0,"t":0,"l":0,"b":0},
