@@ -208,11 +208,14 @@ df_beds['Date'] = pd.to_datetime(df_beds['Date'], dayfirst=True)
 df_beds = df_beds.sort_values('Date', ascending=True)
 df_beds['Date'] = df_beds['Date'].dt.strftime('%d/%m/%Y')
 
+#remove Local from the column to make the id geojson match work
+df_beds['Local Health Board'] = [x.strip().replace("Local ", "") for x in df_beds['Local Health Board']] 
 
 #Make a copy of dataframe make a copy of 'Local Health Board' called location
 #then change 'Date', 'Local Health Board' to multi index and take out any nans (shouldn't be there anymore)
 # df_beds = df_beds.copy()
 df_beds['location'] = df_beds['Local Health Board']
+
 df_beds = df_beds.set_index(['Date', 'Local Health Board'])
 df_beds = df_beds.replace(np.nan, 0)
 
@@ -233,8 +236,7 @@ for feature in wales_health_boards['features']:
 #remove 'Velindre University NHS Trust' for the chloropleth vis
 df_chloro = df_beds.loc[df_beds['location'] != 'Velindre University NHS Trust'].copy()
 
-#remove Local from the column to make the id geojson match work
-df_chloro['location'] = [x.strip().replace("Local ", "") for x in df_chloro['location']] 
+
 
 #match up ids into new id column
 df_chloro['id'] = df_chloro['location'].apply(lambda x:hb_id_map[x])
@@ -347,7 +349,7 @@ st.subheader('General and acute beds occupied per 100k people')
 def numpy_dt64_to_str(dt64):
     day_timestamp_dt = (dt64 - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
     day_dt = dt.datetime.utcfromtimestamp(day_timestamp_dt)
-    return day_dt.strftime("%b %d")
+    return day_dt.strftime("%b %Y")
 
 plot_var = 'beds_genandacute_noncovid_per_100000'
 
@@ -507,6 +509,7 @@ df_chloro2 = df_chloro2.reset_index()
 df_chloro2.rename(columns={'YearMonth': 'Date'})
 df_chloro2.columns = ['Date', 'location', 'id', 'ventbeds_noncovid_per_100000']
 df_chloro2['Date'] = pd.to_datetime(df_chloro2['Date'])
+
 
 
 days2 = np.sort(df_chloro2.Date.unique())
