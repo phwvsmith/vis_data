@@ -847,7 +847,7 @@ df_count_total['Percentage most deprived'] = df_count_lower['id']/df_count_total
 df_count_total = df_count_total.sort_values('Percentage most deprived')
 
 st.write('   \n')
-st.write('**Health Boards by percentage of LLSOAs ranked as \"most deprived\" by Welsh Index of Multiple Deprivation**')
+st.write('**Health Boards by percentage of Lower Layer Super Output Areas ranked as \"most deprived\" by Welsh Index of Multiple Deprivation**')
 traces=[go.Bar(
     y = df_count_total.index,
     x = df_count_total['Percentage most deprived'].round(1),
