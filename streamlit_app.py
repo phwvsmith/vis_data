@@ -490,7 +490,7 @@ fig_layout1.update(sliders=[sliders_dict1])
 
 # Plot the figure 
 fig1=go.Figure(data=fig_data1, layout=fig_layout1, frames=fig_frames1)
-fig1.update_layout(width=750, height=400)
+fig1.update_layout(width=700, height=400)
 #fig.show()
 st.plotly_chart(fig1)
 
