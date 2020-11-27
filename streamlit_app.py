@@ -837,6 +837,16 @@ st.plotly_chart(fig, displayModeBar=False, showTips='False')
 
 
 
+st.subheader('Health Boards ranked by proportion of most deprived areas (gov.wales 2020):')
+st.write('1.Swansea Bay University Health Board')
+st.write('2.Aneurin Bevan University Health Board')
+st.write('3.Cwm Taf Morgannwg University Health Board')
+st.write('4.Cardiff and Vale University Health Board')
+st.write('5.Betsi Cadwaladr University Health Board')
+st.write('6.Hywel Dda University Health Board')
+st.write('7.Powys Teaching Health Board')
+
+
 df_vis = pd.read_csv('master_geos_wales.csv')
 
 df_quint = df_vis[df_vis.wimd_2019 < 383]
@@ -849,8 +859,8 @@ df_count_total['Percentage most deprived'] = df_count_lower['id']/df_count_total
 
 df_count_total = df_count_total.sort_values('Percentage most deprived')
 
-st.write('   \n')
-st.write('**Health Boards by percentage of Lower Layer Super Output Areas ranked as \"most deprived\" by Welsh Index of Multiple Deprivation**')
+#st.write('   \n')
+#st.write('**Health Boards by percentage of Lower Layer Super Output Areas ranked as \"most deprived\" by Welsh Index of Multiple Deprivation**')
 traces=[go.Bar(
     y = df_count_total.index,
     x = df_count_total['Percentage most deprived'].round(1),
@@ -876,7 +886,7 @@ fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
 fig.update_yaxes(showline=True, linewidth=2, linecolor='black')
 #fig.show()
 fig.update_layout(width=775, height=355)
-st.plotly_chart(fig)
+#st.plotly_chart(fig)
 
 
 
