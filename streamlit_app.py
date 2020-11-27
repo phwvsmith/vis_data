@@ -715,7 +715,7 @@ st.write('---\n')
 
 st.header('Health Boards by high risk individuals')
 
-st.subheader('Health Boards with highest proportion of black, asian and minority ethnic groups:')
+st.subheader('Health Boards with highest proportion of black, asian and minority ethnic groups (nphs.wales.nhs.uk 2020):')
 st.write('   \n')
 st.write('1.Cardiff and Vale Health Board')
 st.write('2.Swansea Bay Health Board')
