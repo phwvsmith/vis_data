@@ -13,7 +13,7 @@ import numpy as np
 from geopy.extra.rate_limiter import RateLimiter
 # from datetime import datetime
 
-
+#cividis hex codes https://github.com/pnnl/cmaputil/commit/3c87d1d4f0b8a54d601b8feead042526c6a4250a
 
 st.set_page_config(
         page_title="COVID-19 & NHS Wales - visualisation application",
